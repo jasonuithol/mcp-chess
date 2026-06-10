@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 # seed.sh — seed the chess-knowledge database with curated docs.
-# Run from the host. Requires chess-mcp-knowledge (port 5184) running.
+# Run from the host. Requires chess-mcp-knowledge (port 5186) running.
 #
-# Phase 1: indexes any *.md files under docs/ if the directory exists.
-# Phase 2 (TODO, see CLAUDE.md): chessprogramming.org wiki ingest via
-# MediaWiki API; Stockfish + python-chess docs ingest.
+# Sources (each only if present on the host):
+#   docs/                       — any handwritten notes (topic=mcp-chess)
+#   docs/chessprogramming/      — chessprogramming.org wiki cache
+#                                 (populate via ingest-chessprogramming.sh)
+#
+# seed_docs upserts on content hash, so the LAST write to a given doc
+# wins for both content and metadata. The catch-all pass tags everything
+# 'mcp-chess'; the per-topic pass then overwrites chessprogramming/ docs
+# with the specific topic so query-time topic filtering works.
 set -euo pipefail
 
-BASE="http://localhost:5184/mcp"
+BASE="http://localhost:5186/mcp"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -30,7 +36,9 @@ call_tool() {
     local id="$3"
     local name="$4"
     local args="$5"
-    local max_time="${6:-300}"
+    # seed_docs over thousands of chunks on CPU embedding can take 10+ min.
+    # 300s was the FastMCP default but isn't enough for large corpora.
+    local max_time="${6:-3600}"
     RESPONSE=$(echo "{\"jsonrpc\":\"2.0\",\"id\":$id,\"method\":\"tools/call\",\"params\":{\"name\":\"$name\",\"arguments\":$args}}" \
         | curl -s -X POST "$url" \
             -H 'Content-Type: application/json' \
@@ -67,12 +75,20 @@ echo "  Session: $K_SESSION"
 
 if [ -d "$REPO_DIR/docs" ]; then
     echo ""
-    echo "=== Seeding mcp-chess docs ==="
+    echo "=== Seeding mcp-chess docs root (topic=mcp-chess, catch-all) ==="
     call_tool "$BASE" "$K_SESSION" 2 "seed_docs" \
         "{\"docs_path\":\"/opt/projects/mcp-chess/docs\",\"topic\":\"mcp-chess\"}"
+
+    if [ -d "$REPO_DIR/docs/chessprogramming" ]; then
+        echo ""
+        echo "=== Seeding chessprogramming.org cache (topic=chessprogramming) ==="
+        call_tool "$BASE" "$K_SESSION" 3 "seed_docs" \
+            "{\"docs_path\":\"/opt/projects/mcp-chess/docs/chessprogramming\",\"topic\":\"chessprogramming\"}"
+    fi
 else
     echo ""
     echo "=== Skipping mcp-chess docs (no docs/ dir) ==="
+    echo "    To populate: ./knowledge/ingest-chessprogramming.sh"
 fi
 
 # ---------------------------------------------------------------------------

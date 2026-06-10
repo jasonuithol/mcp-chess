@@ -24,6 +24,7 @@ wheels/
 venv/
 env/
 .venv/
+.venv-ingest/
 .env
 
 # Chroma vector DB / runtime data
