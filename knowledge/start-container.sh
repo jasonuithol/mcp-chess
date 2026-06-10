@@ -17,8 +17,6 @@ else
     docker run -d \
         --name "$CONTAINER_NAME" \
         --network host \
-        --device nvidia.com/gpu=all \
-        -e ONNX_PROVIDERS=CUDAExecutionProvider \
         -v "$KNOWLEDGE_DIR:/opt/knowledge" \
         -v "$HOME/Projects:/opt/projects:ro" \
         chess-mcp-knowledge

@@ -8,7 +8,7 @@ runtime against it.
 | Subdir | Container | Port | Purpose |
 |--------|-----------|------|---------|
 | `service/` | `chess-mcp-engine` | 5180 | engine registry, `bestmove`, `analyze`, `perft`, `match`, `sprt`, `epd_test`, position/PGN tooling |
-| `knowledge/` | `chess-mcp-knowledge` | 5184 | RAG over chessprogramming.org wiki, Stockfish docs, python-chess docs |
+| `knowledge/` | `chess-mcp-knowledge` | 5186 | RAG over chessprogramming.org wiki, Stockfish docs, python-chess docs |
 
 The engine service uses [python-chess](https://python-chess.readthedocs.io/)
 for UCI subprocess management, FEN/PGN/SAN parsing, perft, Polyglot books,
@@ -58,7 +58,8 @@ client speaking streamable HTTP can mount these services.
 ./stop.sh                 # shut them down (containers preserved for revival)
 ./clean.sh                # remove containers + images (full teardown)
 
-knowledge/seed.sh         # first-time KB seed
+knowledge/ingest-chessprogramming.sh   # crawl chessprogramming.org wiki (~30-60 min)
+knowledge/seed.sh                       # index cached docs into chroma
 ```
 
 To validate setup works from bare state:
@@ -67,9 +68,8 @@ To validate setup works from bare state:
 ./clean.sh && ./setup.sh && ./start.sh
 ```
 
-Both containers use host networking (ports above). The knowledge
-container needs an NVIDIA GPU + container toolkit for accelerated
-embeddings.
+Both containers use host networking (ports above). Embeddings run on CPU
+(all-MiniLM-L6-v2 via onnxruntime) — no GPU required.
 
 ## Engine binaries
 

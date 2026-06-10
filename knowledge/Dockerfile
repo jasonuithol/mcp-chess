@@ -1,17 +1,16 @@
-FROM docker.io/nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+FROM docker.io/python:3.12-slim
 
-# Install Python + curl/ca-certs (curl needed for the model fetch below).
-# mcp-knowledge-base is fetched as a release tarball over plain HTTPS
-# (see requirements.txt), so no git client is required.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3 python3-pip curl ca-certificates \
+# curl needed for the embedding-model fetch below; ca-certificates is
+# already present in python:slim. Python + pip come with the base image,
+# so no apt-installed Python is needed.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/mcp-knowledge
 
 # Install dependencies first (layer caching)
 COPY requirements.txt .
-RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-fetch the all-MiniLM-L6-v2 embedding model so chromadb finds it
 # locally — no host mount, no first-run download.
@@ -25,6 +24,6 @@ COPY mcp-service.py .
 # Knowledge volume mount point
 RUN mkdir -p /opt/knowledge
 
-EXPOSE 5184
+EXPOSE 5186
 
 CMD ["python3", "mcp-service.py"]
