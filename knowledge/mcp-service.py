@@ -38,7 +38,7 @@ PROJECTS_DIR = os.environ.get("PROJECTS_DIR", "/opt/projects")
 svc = KnowledgeService(ServiceConfig.from_env(
     name="chess-knowledge",
     collection_name="chess_knowledge",
-    port=5184,
+    port=5186,
     header_keys=["project", "topic", "page_title"],
 ))
 

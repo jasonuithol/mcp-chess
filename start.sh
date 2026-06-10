@@ -15,4 +15,4 @@ echo "Starting chess-mcp-engine..."
 echo "Starting chess-mcp-knowledge..."
 "$SCRIPT_DIR/knowledge/start-container.sh"
 
-echo "Done. Services on :5180 (engine) and :5184 (knowledge)."
+echo "Done. Services on :5180 (engine) and :5186 (knowledge)."

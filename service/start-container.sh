@@ -24,6 +24,6 @@ else
         --network host \
         -v "$HOME/Projects:/opt/projects:ro" \
         -e PROJECTS_DIR=/opt/projects \
-        -e KNOWLEDGE_URL=http://localhost:5184/ingest \
+        -e KNOWLEDGE_URL=http://localhost:5186/ingest \
         chess-mcp-engine
 fi
