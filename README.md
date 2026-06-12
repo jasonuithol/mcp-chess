@@ -68,8 +68,10 @@ To validate setup works from bare state:
 ./clean.sh && ./setup.sh && ./start.sh
 ```
 
-Both containers use host networking (ports above). Embeddings run on CPU
-(all-MiniLM-L6-v2 via onnxruntime) — no GPU required.
+Both containers use host networking (ports above). The knowledge service
+runs embeddings on GPU (all-MiniLM-L6-v2 via onnxruntime-gpu) — run
+`knowledge/setup-gpu.sh` once on a fresh host to install the NVIDIA
+Container Toolkit and patch the CDI spec for podman compatibility.
 
 ## Engine binaries
 
